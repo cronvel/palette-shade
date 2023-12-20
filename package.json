@@ -1,0 +1,38 @@
+{
+  "name": "palette-shade",
+  "version": "0.1.0",
+  "description": "A 12-hue palette with lightness level, saturation level, shade, tone and tint modifiers.",
+  "main": "lib/palette-shade.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "tea-time -R dot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cronvel/palette-shade.git"
+  },
+  "keywords": [
+    "color",
+    "palette",
+    "hue",
+    "lightness",
+    "saturation",
+    "shade",
+    "tone",
+    "tint"
+  ],
+  "author": "Cédric Ronvel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cronvel/palette-shade/issues"
+  },
+  "copyright": {
+    "title": "Palette Shade",
+    "years": [
+      2023
+    ],
+    "owner": "Cédric Ronvel"
+  }
+}
