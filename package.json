@@ -1,6 +1,6 @@
 {
   "name": "palette-shade",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A 12-hue palette with lightness level, saturation level, shade, tone and tint modifiers.",
   "main": "lib/palette-shade.js",
   "directories": {
