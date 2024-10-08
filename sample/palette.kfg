@@ -1,12 +1,22 @@
 
 partial: yes
+
 fixedColors:
 	black: #000
 	white: #fff
+
+	# The 5 unicode skin tones
+	lighter-skin: #ffd6ad
+	light-skin: #ffcf7c
+	skin: #e9a566
+	dark-skin: #c07736
+	darker-skin: #8f4923
+
 baseColors:
+	# Color wheel
 	red: #e32826
 	orange: #f18e1c
-	yellow-orange: #fdc60b
+	#yellow-orange: #fdc60b
 	yellow: #f4e500
 	yellow-green: #8cbb26
 	green: #25ad28
@@ -16,6 +26,11 @@ baseColors:
 	blue-violet: #3b3ba2
 	violet: #713795
 	red-violet: #bd0a7d
+
+	# Misc colors
+	brown: #853500
+	gray: #808080
+
 tintColor: #ffa
 shadeColor: #201530
 tints: 2
