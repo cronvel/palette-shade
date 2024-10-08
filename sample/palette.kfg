@@ -1,0 +1,26 @@
+
+partial: yes
+fixedColors:
+	black: #000
+	white: #fff
+baseColors:
+	red: #e32826
+	orange: #f18e1c
+	yellow-orange: #fdc60b
+	yellow: #f4e500
+	yellow-green: #8cbb26
+	green: #25ad28
+	blue-green: #1bc17d
+	cyan: #0dc0cd
+	blue: #2a60b0
+	blue-violet: #3b3ba2
+	violet: #713795
+	red-violet: #bd0a7d
+tintColor: #ffa
+shadeColor: #201530
+tints: 2
+shades: 3
+hueShiftRate: 0.5
+mixRateStep: 0.3
+
+
