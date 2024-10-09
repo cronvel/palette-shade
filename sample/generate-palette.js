@@ -43,6 +43,8 @@ exporters.display = () => {
 	console.log( "Names: " , fixedPalette.named ) ;
 } ;
 
+
+
 exporters['index-json'] = () => {
 	let fixedPalette = new FixedPalette( config ) ;
 	let content = JSON.stringify( fixedPalette.indexed ) ;
@@ -51,6 +53,8 @@ exporters['index-json'] = () => {
 	else if ( content ) { console.log( content ) ; }
 } ;
 
+
+
 exporters['names-json'] = () => {
 	let fixedPalette = new FixedPalette( config ) ;
 	let content = JSON.stringify( fixedPalette.named ) ;
@@ -58,6 +62,8 @@ exporters['names-json'] = () => {
 	if ( outputFile ) { fs.writeFileSync( outputFile , content ) ; }
 	else if ( content ) { console.log( content ) ; }
 } ;
+
+
 
 exporters['pixelorama'] = () => {
 	let fixedPalette = new FixedPalette( config , 'chroma' ) ;
@@ -78,25 +84,87 @@ exporters['pixelorama'] = () => {
 
 	if ( outputFile ) { fs.writeFileSync( outputFile , content ) ; }
 	else if ( content ) { console.log( content ) ; }
+} ;
+
+
+
+exporters['png'] = () => {
+	exportPng( fixedPalette => vline( fixedPalette , 1 , 1 ) ) ;
+} ;
+
+exporters['vline-png'] = () => {
+	exportPng( fixedPalette => vline( fixedPalette , 1 , 32 ) ) ;
+} ;
+
+exporters['thick-vline-png'] = () => {
+	exportPng( fixedPalette => vline( fixedPalette , 16 , 128 ) ) ;
+} ;
+
+exporters['hline-png'] = () => {
+	exportPng( fixedPalette => hline( fixedPalette , 1 , 32 ) ) ;
+} ;
+
+exporters['thick-hline-png'] = () => {
+	exportPng( fixedPalette => hline( fixedPalette , 16 , 128 ) ) ;
+} ;
+
+
+
+function vline( fixedPalette , thickness = 1 , length = 32 ) {
+	let imgArray = [] ;
+	let width = fixedPalette.indexed.length * thickness ;
+	let height = length ;
+
+	for ( let y = 0 ; y < height ; y ++ ) {
+		for ( let x = 0 ; x < width ; x ++ ) {
+			let colorIndex = Math.round( x * fixedPalette.indexed.length / width ) ;
+			imgArray[ y * width + x ] = colorIndex ;
+		}
+	}
+	
+	return [ width , height , imgArray ] ;
 }
 
-exporters['png'] = async () => {
+
+
+function hline( fixedPalette , thickness = 1 , length = 32 ) {
+	let imgArray = [] ;
+	let width = length ;
+	let height = fixedPalette.indexed.length * thickness ;
+
+	for ( let y = 0 ; y < height ; y ++ ) {
+		for ( let x = 0 ; x < width ; x ++ ) {
+			let colorIndex = Math.round( y * fixedPalette.indexed.length / height ) ;
+			imgArray[ y * width + x ] = colorIndex ;
+		}
+	}
+	
+	return [ width , height , imgArray ] ;
+}
+
+
+
+async function exportPng( dataFn ) {
+	if ( ! outputFile ) {
+		console.error( "The 'png' exporter requires an output file" ) ;
+		process.exit( 1 ) ;
+	}
+
 	//const PngToy = require( './pngtoy.min.js' ) ;
 	const indexedPng = require( 'indexed-png' ) ;
-	fixedPalette = new FixedPalette( config , rgb ) ;
+	let fixedPalette = new FixedPalette( config , 'rgb' ) ;
 
 	// First create the palette
 	let paletteArray = [] ;
+	
 	for ( let color of fixedPalette.indexed ) {
-		paletteArray.push(( color.r * 0x33) | ((color.g * 0x33) << 8) | ((color.b * 0x33) << 16));
+		paletteArray.push( ( color.r << 16 ) | ( color.g << 8 ) | ( color.b ) ) ;
 	}
 	
-	(async () => {
-		const width = 36;
-		const height = 6
-		const data = Buffer.from(Array(width * height).fill(0).map((_, i) => i % (paletteArray.length)));
-		fs.writeFileSync('test.png', (await indexedPng.createPNG(data, palette, width, height)));
-	})();
+	let [ width , height , imgArray ] = dataFn( fixedPalette ) ;
+	
+	const buffer = Buffer.from( imgArray ) ;
+	fs.writeFileSync( outputFile , (await indexedPng.createPNG(buffer, paletteArray, width, height)));
 }
 
 
