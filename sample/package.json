@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "indexed-png": "^0.0.6",
     "kung-fig": "^0.67.3"
   }
 }
