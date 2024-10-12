@@ -34,6 +34,11 @@ function reconstructTables() {
 	}
 }
 
+function getMaxChromaForHue( hue ) {
+	hue = Math.round( hue ) ;
+	return lookupTable.hueMaxChroma[ hue ] ;
+}
+
 function getMaxChromaForHueAndLightness( hue , lightness ) {
 	hue = Math.round( hue ) ;
 	lightness = Math.round( lightness ) ;
@@ -59,16 +64,22 @@ switch ( ( '' + process.argv[ 2 ] ).toLowerCase() ) {
 	case 'chroma' : {
 		let hue = + process.argv[ 3 ] || 0 ;
 		let lightness = + process.argv[ 4 ] || 0 ;
-		console.log( "Hue:" , hue , " Lightness:" , lightness , " --> max Chroma:" , getMaxChromaForHueAndLightness( hue , lightness ) ) ;
+		console.log(
+			"Hue:" , hue , " Lightness:" , lightness ,
+			"  --> max Chroma:" , getMaxChromaForHueAndLightness( hue , lightness ) ,
+			"  (hue max Chroma: " + getMaxChromaForHue( hue ) + ")"
+		) ;
 		break ;
 	}
 	case 'l' :
 	case 'lightness' : {
 		let hue = + process.argv[ 3 ] || 0 ;
 		let chroma = + process.argv[ 4 ] || 0 ;
-		console.log( "Hue:" , hue , " Chroma:" , chroma ,
-			" --> min/max Lightness:" , getMinLightnessForHueAndChroma( hue , chroma ) ,
-			"/" , getMaxLightnessForHueAndChroma( hue , chroma )
+		console.log(
+			"Hue:" , hue , " Chroma:" , chroma ,
+			"  --> min/max Lightness:" , getMinLightnessForHueAndChroma( hue , chroma ) ,
+			"/" , getMaxLightnessForHueAndChroma( hue , chroma ) ,
+			"  (hue max Chroma: " + getMaxChromaForHue( hue ) + ")"
 		) ;
 		break ;
 	}

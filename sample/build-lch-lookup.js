@@ -108,11 +108,17 @@ function getMaxChromaForHueAndLightness( hue , lightness ) {
 
 const info = {
 	lowestMaxChroma: Infinity ,
+	hueAtLowestMaxChroma: -1 ,
 	highestMaxChroma: - Infinity ,
-	lowestMinLightness: Infinity ,
+	hueAtHighestMaxChroma: -1 ,
+	//lowestMinLightness: Infinity ,
+	//hueChromaAtLowestMinLightness: -1 ,
 	highestMinLightness: - Infinity ,
+	hueChromaAtHighestMinLightness: -1 ,
 	lowestMaxLightness: Infinity ,
-	highestMaxLightness: - Infinity ,
+	hueChromaAtLowestMaxLightness: -1 ,
+	//highestMaxLightness: - Infinity ,
+	//hueChromaAtHighestMaxLightness: -1
 } ;
 
 const hueMaxChroma = [] ;
@@ -123,8 +129,8 @@ const hueLightnessMaxChroma = [] ;
 for ( let h = 0 ; h < 360 ; h ++ ) {
 	let [ maxC , foundL ] = getMaxChromaForHue( h ) ;
 	hueMaxChroma[ h ] = maxC ;
-	if ( maxC < info.lowestMaxChroma ) { info.lowestMaxChroma = maxC ; }
-	if ( maxC > info.highestMaxChroma ) { info.highestMaxChroma = maxC ; }
+	if ( maxC < info.lowestMaxChroma ) { info.lowestMaxChroma = maxC ; info.hueAtLowestMaxChroma = h ; }
+	if ( maxC > info.highestMaxChroma ) { info.highestMaxChroma = maxC ; info.hueAtHighestMaxChroma = h ; }
 
 	hueChromaMinLightness[ h ] = [] ;
 	hueChromaMaxLightness[ h ] = [] ;
@@ -134,10 +140,10 @@ for ( let h = 0 ; h < 360 ; h ++ ) {
 		let [ minL , maxL ] = getMinMaxLightnessForHueAndChroma( h , c , foundL ) ;
 		hueChromaMinLightness[ h ][ c ] = minL ;
 		hueChromaMaxLightness[ h ][ c ] = maxL ;
-		if ( minL < info.lowestMinLightness ) { info.lowestMinLightness = minL ; }
-		if ( minL > info.highestMinLightness ) { info.highestMinLightness = minL ; }
-		if ( maxL < info.lowestMaxLightness ) { info.lowestMaxLightness = maxL ; }
-		if ( maxL > info.highestMaxLightness ) { info.highestMaxLightness = maxL ; }
+		//if ( minL < info.lowestMinLightness ) { info.lowestMinLightness = minL ; info.hueChromaAtLowestMinLightness = [ h , c ] ; }
+		if ( minL > info.highestMinLightness ) { info.highestMinLightness = minL ; info.hueChromaAtHighestMinLightness = [ h , c ] ; }
+		if ( maxL < info.lowestMaxLightness ) { info.lowestMaxLightness = maxL ; info.hueChromaAtLowestMaxLightness = [ h , c ] ; }
+		//if ( maxL > info.highestMaxLightness ) { info.highestMaxLightness = maxL ; info.hueChromaAtHighestMaxLightness = [ h , c ] ; }
 	}
 
 	for ( let l = 0 ; l <= 100 ; l ++ ) {
@@ -166,3 +172,26 @@ const json = JSON.stringify( jsonData , null , '  ' ) ;
 
 fs.writeFileSync( 'lch-lookup.json' , json ) ;
 
+
+
+// Tests:
+return ;
+
+
+
+const getMaxChromaForHueAndLightness_ = ( hue , lightness ) => hueLightnessMaxChroma[ hue ][ lightness ] ;
+const getMinLightnessForHueAndChroma_ = ( hue , chroma ) => hueChromaMinLightness[ hue ][ chroma ] ;
+const getMaxLightnessForHueAndChroma_ = ( hue , chroma ) => hueChromaMaxLightness[ hue ][ chroma ] ;
+
+let hue = 200 , chroma = 60 , lightness = 90 ;
+
+console.log(
+	"Hue:" , hue , " Lightness:" , lightness ,
+	" --> max Chroma:" , getMaxChromaForHueAndLightness_( hue , lightness )
+) ;
+
+console.log(
+	"Hue:" , hue , " Chroma:" , chroma ,
+	" --> min/max Lightness:" , getMinLightnessForHueAndChroma_( hue , chroma ) ,
+	"/" , getMaxLightnessForHueAndChroma_( hue , chroma )
+) ;
