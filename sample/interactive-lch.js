@@ -11,14 +11,30 @@ const chromajs = lib.chromajs ;
 const termkit = require( 'terminal-kit' ) ;
 const term = termkit.terminal ;
 
+const fs = require( 'fs' ) ;
+
 
 
 term.on( 'key' , key => {
     if ( key === 'CTRL_C' ) {
         term.green( 'CTRL-C detected...\n' ) ;
+        fs.writeFileSync( 'interactive-lch.history.json' , JSON.stringify( history.slice( -100 ) ) ) ;
         term.processExit() ;
     }
 } ) ;
+
+
+
+function run() {
+	try {
+		let content = fs.readFileSync( 'interactive-lch.history.json' , 'utf8' ) ;
+		let savedHistory = JSON.parse( content ) ;
+		if ( Array.isArray( savedHistory ) ) { history = savedHistory ; }
+	}
+	catch ( error ) {}
+
+	repl() ;
+}
 
 
 
@@ -41,7 +57,7 @@ async function repl() {
 	}
 }
 
-const history = [] ;
+var history = [] ;
 const data = {
 	color: chromajs( '#fff' ) ,
 	storedColor: null
@@ -65,7 +81,7 @@ commands.displayColor = commands.d = ( color = data.color ) => {
 	let rgb = color.rgb() ;
 	let lch = color.lch() ;
 	term.bgColorRgb( rgb[0] , rgb[1] , rgb[2] , "  " ) ;
-	term( " hex: ^c%s^   RGB: ^c%i %i %i^   Lch: ^c%i %i %i^:\n" , data.color , rgb[0] , rgb[1] , rgb[2] , lch[0] , lch[1] , lch[2] ) ;
+	term( " hex: ^c%s^   RGB: ^c%i %i %i^   Lch: ^c%i %i %i^:\n" , color , rgb[0] , rgb[1] , rgb[2] , lch[0] , lch[1] , lch[2] ) ;
 } ;
 
 commands.displayStoredColor = commands.ds = () => {
@@ -76,80 +92,67 @@ commands.displayStoredColor = commands.ds = () => {
 commands.adjustL = commands['l+'] = commands['L+'] = value => {
 	let lch = data.color.lch() ;
 	lch[0] += + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
 commands.setL = commands['l'] = commands['L'] = value => {
 	let lch = data.color.lch() ;
 	lch[0] = + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
 commands.adjustC = commands['c+'] = commands['C+'] = value => {
 	let lch = data.color.lch() ;
 	lch[1] += + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
 commands.setC = commands['c'] = commands['C'] = value => {
 	let lch = data.color.lch() ;
 	lch[1] = + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
 commands.adjustH = commands['h+'] = commands['H+'] = value => {
 	let lch = data.color.lch() ;
 	lch[2] += + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
 commands.setH = commands['h'] = commands['H'] = value => {
 	let lch = data.color.lch() ;
 	lch[2] = + parseFloat( value ) || 0 ;
-	data.color = chromajs( ... lch , 'lch' ) ;
+	data.color = Palette.cleanClip( lch ) ;
 	commands.displayColor() ;
 } ;
 
+commands.ramp = ( count , adjustL , adjustC , adjustH ) => {
+	adjustL = + parseFloat( adjustL ) || 0 ;
+	adjustC = + parseFloat( adjustC ) || 0 ;
+	adjustH = + parseFloat( adjustH ) || 0 ;
 
+	let lch = data.color.lch() ;
 
+	commands.displayColor( data.color ) ;
 
+	while ( count -- ) {
+		lch[0] += adjustL ;
+		lch[1] += adjustC ;
+		lch[2] += adjustH ;
+		let color = Palette.cleanClip( lch ) ;
+		commands.displayColor( color ) ;
 
-var exporters = {} ;
-
-exporters.display = () => {
-	let fixedPalette = new FixedPalette( config ) ;
-	console.log( "Color count: " , fixedPalette.indexed.length ) ;
-	console.log( "Indexed palette: " , fixedPalette.indexed ) ;
-	console.log( "Names: " , fixedPalette.named ) ;
+		// Lch after the clipping
+		lch = color.lch() ;
+	}
 } ;
 
 
 
-exporters['index-json'] = () => {
-	let fixedPalette = new FixedPalette( config ) ;
-	let content = JSON.stringify( fixedPalette.indexed ) ;
-
-	if ( outputFile ) { fs.writeFileSync( outputFile , content ) ; }
-	else if ( content ) { console.log( content ) ; }
-} ;
-
-
-
-exporters['names-json'] = () => {
-	let fixedPalette = new FixedPalette( config ) ;
-	let content = JSON.stringify( fixedPalette.named ) ;
-
-	if ( outputFile ) { fs.writeFileSync( outputFile , content ) ; }
-	else if ( content ) { console.log( content ) ; }
-} ;
-
-
-
-
-repl() ;
+run() ;
 

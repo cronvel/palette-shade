@@ -16,6 +16,7 @@ build
 _build
 _templates
 _static
+*.history.json
 
 
 # gitignore / Node.gitignore #
