@@ -65,14 +65,14 @@ const data = {
 
 const commands = {} ;
 
-commands.set = color => {
-	data.color = chromajs( color ) ;
+commands.set = colorCode => {
+	data.color = chromajs( colorCode ) ;
 	commands.displayColor() ;
 } ;
 
-commands.store = color => { data.storedColor = data.color ; } ;
+commands.store = () => { data.storedColor = data.color ; } ;
 
-commands.restore = color => {
+commands.restore = () => {
 	if ( ! data.storedColor ) { term.red( "No color stored\n" ) ; return ; }
 	data.color = data.storedColor ;
 } ;
@@ -150,6 +150,19 @@ commands.ramp = ( count , adjustL , adjustC , adjustH ) => {
 		// Lch after the clipping
 		lch = color.lch() ;
 	}
+} ;
+
+commands.mix = ( colorCode , rate = 0.5 ) => {
+	let invRate = 1 - rate ;
+	let lch1 = data.color.lch() ;
+	let lch2 = chromajs( colorCode ).lch() ;
+	let lch = [
+		lch1[0] * invRate + lch2[0] * rate ,
+		lch1[1] * invRate + lch2[1] * rate ,
+		lch1[2] * invRate + lch2[2] * rate
+	] ;
+	let color = Palette.cleanClip( lch ) ;
+	commands.displayColor( color ) ;
 } ;
 
 
