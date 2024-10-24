@@ -266,6 +266,67 @@ commands.mix = ( colorCode , rate = 0.5 ) => {
 	commands.displayColor( color ) ;
 } ;
 
+commands.complementary = commands.cpl = () => {
+	commands.displayColor() ;
+	commands.displayColor( normalizedHueShift( data.color , 180 ) ) ;
+} ;
+
+commands.triad = () => {
+	commands.displayColor() ;
+	commands.displayColor( normalizedHueShift( data.color , 120 ) ) ;
+	commands.displayColor( normalizedHueShift( data.color , 240 ) ) ;
+} ;
+
+commands.analogic = () => {
+	term( "Either:\n" ) ;
+
+	commands.displayColor( normalizedHueShift( data.color , -30 ) ) ;
+	commands.displayColor() ;
+	commands.displayColor( normalizedHueShift( data.color , 30 ) ) ;
+
+	term( "Or:\n" ) ;
+
+	commands.displayColor( adjustColor( data.color , -20 , 10 , -30 ) ) ;
+	commands.displayColor() ;
+	commands.displayColor( adjustColor( data.color , 20 , -10 , 30 ) ) ;
+
+	term( "Or:\n" ) ;
+
+	commands.displayColor( adjustColor( data.color , 20 , -10 , -30 ) ) ;
+	commands.displayColor() ;
+	commands.displayColor( adjustColor( data.color , -20 , 10 , 30 ) ) ;
+} ;
+
+commands.tetrad = () => {
+	commands.displayColor() ;
+	commands.displayColor( normalizedHueShift( data.color , 60 ) ) ;
+	commands.displayColor( normalizedHueShift( data.color , 180 ) ) ;
+	commands.displayColor( normalizedHueShift( data.color , 240 ) ) ;
+} ;
+
+function normalizedHueShift( color , shift ) {
+	let [ l1 , c , h1 ] = color.lch() ,
+		h2 = h1 + shift >= 0 ? ( h1 + shift ) % 360 : 360 + ( ( h1 + shift ) % 360 ) ,
+		maxL1 = Palette.getMaxLightnessForHueAndChroma( h1 , Math.min( c , Palette.getMaxChromaForHue( h1 ) ) ) ,
+		maxL2 = Palette.getMaxLightnessForHueAndChroma( h2 , Math.min( c , Palette.getMaxChromaForHue( h2 ) ) ) ,
+		normL1 = l1 / maxL1 ,
+		l2 = normL1 * maxL2 ;
+	return Palette.cleanClip( [ l2 , c , h2 ] ) ;
+}
+
+function adjustColor( color , deltaL , deltaC , deltaH ) {
+	deltaL = + deltaL || 0 ;
+	deltaC = + deltaC || 0 ;
+	deltaH = + deltaH || 0 ;
+
+	let [ l1 , c1 , h1 ] = color.lch() ,
+		l2 = l1 + deltaL ,
+		c2 = c1 + deltaC ,
+		h2 = h1 + deltaH >= 0 ? ( h1 + deltaH ) % 360 : 360 + ( ( h1 + deltaH ) % 360 ) ;
+
+	return Palette.cleanClip( [ l2 , c2 , h2 ] ) ;
+}
+
 
 
 run() ;
