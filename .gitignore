@@ -17,6 +17,7 @@ _build
 _templates
 _static
 *.history.json
+*.palette.json
 
 
 # gitignore / Node.gitignore #

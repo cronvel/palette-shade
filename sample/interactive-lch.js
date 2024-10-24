@@ -19,6 +19,7 @@ term.on( 'key' , key => {
     if ( key === 'CTRL_C' ) {
         term.green( 'CTRL-C detected...\n' ) ;
         fs.writeFileSync( 'interactive-lch.history.json' , JSON.stringify( history.slice( -100 ) ) ) ;
+        fs.writeFileSync( 'interactive-lch.palette.json' , JSON.stringify( data.palette.map( color => color.hex() ) ) ) ;
         term.processExit() ;
     }
 } ) ;
@@ -33,6 +34,16 @@ function run() {
 	}
 	catch ( error ) {}
 
+	try {
+		let content = fs.readFileSync( 'interactive-lch.palette.json' , 'utf8' ) ;
+		let savedPalette = JSON.parse( content ) ;
+		if ( Array.isArray( savedPalette ) && savedPalette.length) {
+			data.palette = savedPalette.map( colorCode => chromajs( colorCode ) ) ;
+			commands.displayPalette() ;
+		}
+	}
+	catch ( error ) {}
+
 	repl() ;
 }
 
@@ -41,7 +52,7 @@ function run() {
 async function repl() {
 	for ( ;; ) {
 		term( "> " ) ;
-		let input = await term.inputField( { history } ).promise ;
+		let input = await term.inputField( { history , autoComplete: history , autoCompleteMenu: true } ).promise ;
 		term( "\n" ) ;
 
 		input = input.trim() ;
@@ -60,7 +71,9 @@ async function repl() {
 var history = [] ;
 const data = {
 	color: chromajs( '#fff' ) ,
-	storedColor: null
+	altColor: chromajs( '#000' ) ,
+	storedColor: null ,
+	palette: []
 } ;
 
 const commands = {} ;
@@ -77,6 +90,45 @@ commands.restore = () => {
 	data.color = data.storedColor ;
 } ;
 
+commands.storePalette = commands.sp = ( index = data.palette.length ) => {
+	index = Math.round( Math.max( 0 , Math.min( data.palette.length , + index || 0 ) ) ) ;
+	data.palette[ index ] = data.color ;
+	term( "Stored at index %i\n" , index ) ;
+} ;
+
+commands.setPalette = commands.setp = ( ... colorCodes ) => {
+	if ( ! colorCodes.length ) {
+		term.red( "Should have a list of colors as arguments\n" ) ;
+		return ;
+	}
+
+	data.palette.length = 0 ;
+
+	for ( let colorCode of colorCodes ) {
+		let color = chromajs( colorCode ) ;
+		data.palette.push( color ) ;
+	}
+
+	commands.displayPalette() ;
+} ;
+
+commands.getPalette = commands.gp = index => {
+	if ( ! index ) {
+		term.red( "Index required for this command\n" ) ;
+		return ;
+	}
+
+	index = Math.round( + index || 0 ) ;
+
+	if ( index < 0 || index >= data.palette.length ) {
+		term.red( "Index out of range, current palette have %i colors\n" , data.palette.length ) ;
+		return ;
+	}
+
+	data.color = data.palette[ index ] ;
+	commands.displayColor() ;
+} ;
+
 commands.displayColor = commands.d = ( color = data.color ) => {
 	let rgb = color.rgb() ;
 	let lch = color.lch() ;
@@ -87,6 +139,55 @@ commands.displayColor = commands.d = ( color = data.color ) => {
 commands.displayStoredColor = commands.ds = () => {
 	if ( ! data.storedColor ) { term.red( "No color stored\n" ) ; return ; }
 	return commands.displayColor( data.storedColor ) ;
+} ;
+
+commands.displayPalette = commands.dp = ( mode ) => {
+	if ( ! data.palette.length ) {
+		term( "No color in the palette.\n" ) ;
+		return ;
+	}
+
+	var listMode = mode === 'l' || mode === 'list' ;
+
+	term( "%i colors in the palette:\n" , data.palette.length ) ;
+
+	for ( let index = 0 ; index < data.palette.length ; index ++ ) {
+		let color = data.palette[ index ] ;
+		let rgb = color.rgb() ;
+		let indexStr = '' + index ;
+
+		if ( indexStr.length === 1 ) { indexStr = ' ' + indexStr + ' ' ; }
+		else if ( indexStr.length === 2 ) { indexStr = ' ' + indexStr ; }
+
+		if ( rgb[ 0 ] + rgb[ 1 ] + rgb[ 2 ] > 300 ) {
+			term.black.bgColorRgb( rgb[0] , rgb[1] , rgb[2] , indexStr ) ;
+		}
+		else {
+			term.white.bgColorRgb( rgb[0] , rgb[1] , rgb[2] , indexStr ) ;
+		}
+		
+		if ( listMode ) {
+			let lch = color.lch() ;
+			term( " hex: ^c%s^   RGB: ^c%i %i %i^   Lch: ^c%i %i %i^:\n" , color , rgb[0] , rgb[1] , rgb[2] , lch[0] , lch[1] , lch[2] ) ;
+		}
+	}
+
+	term( "\n" ) ;
+} ;
+
+commands.dpl = () => commands.displayPalette( 'list' ) ;
+
+commands.displaySpectrum = commands.dspec = ( l = 60 , c = 70 ) => {
+	l = + l || 0 ;
+	c = + c || 0 ;
+
+	for ( let hue = 0 ; hue < 360 ; hue += 3 ) {
+		let color = Palette.cleanClip( [ l , c , hue ] ) ;
+		let rgb = color.rgb() ;
+		term.bgColorRgb( rgb[0] , rgb[1] , rgb[2] , ' ' ) ;
+	}
+
+	term( '\n' );
 } ;
 
 commands.adjustL = commands['l+'] = commands['L+'] = value => {
